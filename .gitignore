@@ -1,0 +1,14 @@
+*.obj
+/**/.vs/*
+/**/x64/**
+/**/obj/**
+/**/Debug/**
+/**/Release/**
+/**/Final/**
+*.user
+
+*.vtcache
+
+.vs/*
+
+*.args.json

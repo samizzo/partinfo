@@ -92,25 +92,28 @@ int main(int argc, char** argv)
     }
 
     Partition* table = (Partition*)&buffer[MBR_CODE_LENGTH_BYTES];
-    printf("No.  Active  Type           Start CHS      End CHS        Start Sector  Size (sectors)\n");
+    printf("Active     Partition           Start                  End               Start           Size     \n");
+    printf(" boot        type       Cylinder Head Sector  Cylinder Head Sector      sector       in sectors  \n");
+    printf("------  --------------  --------------------  --------------------  -------------  --------------\n");
     for (int i = 0; i < MBR_NUM_PARTITION_ENTRIES; i++, table++)
     {
-        printf("%u    ", i);
         printf("   %c    ", table->bootIndicator ? '*' : ' ');
 
         const auto type = PartitionTypes.find(table->type);
         const std::string& typeStr = type == PartitionTypes.end() ? "unknown" : type->second;
-        printf("%-14s ", typeStr.c_str());
+        printf("%-14s  ", typeStr.c_str());
 
-        char chs[1024];
+        /*char chs[1024];
         sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->startCHS), DecodeCHSHead(table->startCHS), DecodeCHSSector(table->startCHS));
-        printf("%-14s ", chs);
+        printf("%-14s ", chs);*/
+        printf("%8u %4u %6u  ", DecodeCHSCylinder(table->startCHS), DecodeCHSHead(table->startCHS), DecodeCHSSector(table->startCHS));
+        printf("%8u %4u %6u  ", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
 
-        sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
-        printf("%-14s ", chs);
+        //sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
+        //printf("%-14s ", chs);
 
-        printf("%-13u ", table->startSectorLBA);
-        printf("%-15u", table->sizeInSectors);
+        printf("%13u  ", table->startSectorLBA);
+        printf("%14u ", table->sizeInSectors);
 
         uint32_t calculatedSizeInSectors = CalculateSizeInSectors(table);
         if (table->type != 0 && calculatedSizeInSectors != table->sizeInSectors)

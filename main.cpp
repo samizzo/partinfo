@@ -103,14 +103,8 @@ int main(int argc, char** argv)
         const std::string& typeStr = type == PartitionTypes.end() ? "unknown" : type->second;
         printf("%-14s  ", typeStr.c_str());
 
-        /*char chs[1024];
-        sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->startCHS), DecodeCHSHead(table->startCHS), DecodeCHSSector(table->startCHS));
-        printf("%-14s ", chs);*/
         printf("%8u %4u %6u  ", DecodeCHSCylinder(table->startCHS), DecodeCHSHead(table->startCHS), DecodeCHSSector(table->startCHS));
         printf("%8u %4u %6u  ", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
-
-        //sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
-        //printf("%-14s ", chs);
 
         printf("%13u  ", table->startSectorLBA);
         printf("%14u ", table->sizeInSectors);

@@ -32,21 +32,30 @@ const std::unordered_map<uint8_t, std::string> PartitionTypes =
     { 0x0f, "Extended/INT13" }
 };
 
-static inline uint32_t DecodeCHSCylinder(uint8_t chs[3])
+static inline uint32_t DecodeCHSCylinder(const uint8_t chs[3])
 {
     uint32_t cylinder = (uint32_t)chs[2] | ((uint32_t)(chs[1] & (0x80 | 0x40))) << 2;
     return cylinder;
 }
 
-static inline uint32_t DecodeCHSHead(uint8_t chs[3])
+static inline uint32_t DecodeCHSHead(const uint8_t chs[3])
 {
     return chs[0];
 }
 
-static inline uint32_t DecodeCHSSector(uint8_t chs[3])
+static inline uint32_t DecodeCHSSector(const uint8_t chs[3])
 {
     uint32_t sector = chs[1] & 0x3f;
     return sector;
+}
+
+static inline uint32_t CalculateSizeInSectors(const Partition* partition)
+{
+    uint32_t cylinder = DecodeCHSCylinder(partition->endCHS);
+    uint32_t head = DecodeCHSHead(partition->endCHS);
+    uint32_t sector = DecodeCHSSector(partition->endCHS);
+    uint32_t size = ((cylinder + 1) * (head + 1) * sector) - partition->startSectorLBA;
+    return size;
 }
 
 int main(int argc, char** argv)
@@ -83,7 +92,7 @@ int main(int argc, char** argv)
     }
 
     Partition* table = (Partition*)&buffer[MBR_CODE_LENGTH_BYTES];
-    printf("No.  Active  Type           Start CHS      End CHS        Start Sector (LBA)  Size (in sectors)\n");
+    printf("No.  Active  Type           Start CHS      End CHS        Start Sector  Size (sectors)\n");
     for (int i = 0; i < MBR_NUM_PARTITION_ENTRIES; i++, table++)
     {
         printf("%u    ", i);
@@ -100,8 +109,13 @@ int main(int argc, char** argv)
         sprintf_s(chs, "%u/%u/%u", DecodeCHSCylinder(table->endCHS), DecodeCHSHead(table->endCHS), DecodeCHSSector(table->endCHS));
         printf("%-14s ", chs);
 
-        printf("%-19u ", table->startSectorLBA);
-        printf("%u\n", table->sizeInSectors);
+        printf("%-13u ", table->startSectorLBA);
+        printf("%-15u", table->sizeInSectors);
+
+        uint32_t calculatedSizeInSectors = CalculateSizeInSectors(table);
+        if (table->type != 0 && calculatedSizeInSectors != table->sizeInSectors)
+            printf("(may be corrupt, calculated size %u does not match)", calculatedSizeInSectors);
+        printf("\n");
     }
 
     return 0;
